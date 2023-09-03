@@ -1,0 +1,3 @@
+package secure
+
+package object logging extends LogSecureStringInterpolation with LogSecureEncoders

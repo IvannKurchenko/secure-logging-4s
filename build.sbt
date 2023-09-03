@@ -5,9 +5,27 @@ ThisBuild / version          := "0.1.0-SNAPSHOT"
 ThisBuild / organization     := "secure.logging"
 
 lazy val root = (project in file("."))
+  .aggregate(core)
+
+lazy val core = (project in file("core"))
   .settings(
-    name := "secure-logging-4s",
-    libraryDependencies += munit % Test
+    name := "secure-logging-4s-core",
+    libraryDependencies ++= Seq(munit % Test)
   )
 
-// See https://www.scala-sbt.org/1.x/docs/Using-Sonatype.html for instructions on how to publish to Sonatype.
+
+lazy val derivations = (project in file("derivations"))
+  .settings(
+    name := "secure-logging-4s-derivations",
+    libraryDependencies ++= Seq(munit % Test)
+  )
+  .dependsOn(core)
+
+lazy val scalaLogging = (project in file("scala-logging"))
+  .settings(
+    name := "secure-logging-4s-scala-logging",
+    libraryDependencies ++= Seq(munit % Test)
+  )
+  .dependsOn(core)
+
+//lazy val munit = "org.scalameta" %% "munit" % "0.7.20" % Test
