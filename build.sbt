@@ -17,15 +17,42 @@ lazy val core = (project in file("core"))
 lazy val derivations = (project in file("derivations"))
   .settings(
     name := "secure-logging-4s-derivations",
-    libraryDependencies ++= Seq(munit % Test)
+    libraryDependencies ++= Seq(
+      munit % Test
+    )
   )
   .dependsOn(core)
 
 lazy val scalaLogging = (project in file("scala-logging"))
   .settings(
     name := "secure-logging-4s-scala-logging",
-    libraryDependencies ++= Seq(munit % Test)
+    libraryDependencies ++= Seq(
+      "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
+      munit % Test
+    )
   )
   .dependsOn(core)
 
-//lazy val munit = "org.scalameta" %% "munit" % "0.7.20" % Test
+
+lazy val log4s = (project in file("log4s"))
+  .settings(
+    name := "secure-logging-4s-log4s",
+    libraryDependencies ++= Seq("org.log4s" %% "log4s" % "1.10.0")
+  )
+  .dependsOn(core)
+
+lazy val log4cats = (project in file("log4cats"))
+  .settings(
+    name := "secure-logging-4s-log4cats",
+    libraryDependencies ++= Seq("org.typelevel" %% "log4cats-core" % "2.6.0")
+  )
+  .dependsOn(core)
+
+lazy val examples = (project in file("examples"))
+  .settings(
+    name := "secure-logging-4s-examples",
+    libraryDependencies ++= Seq(
+      "ch.qos.logback" % "logback-classic" % "1.4.7",
+    )
+  )
+  .dependsOn(core, scalaLogging, log4s)
