@@ -53,6 +53,7 @@ lazy val examples = (project in file("examples"))
     name := "secure-logging-4s-examples",
     libraryDependencies ++= Seq(
       "ch.qos.logback" % "logback-classic" % "1.4.7",
+      "org.typelevel" %% "log4cats-slf4j" % "2.6.0"
     )
   )
-  .dependsOn(core, scalaLogging, log4s)
+  .dependsOn(core, scalaLogging, log4s, log4cats)
