@@ -2,8 +2,8 @@ package secure.logging.examples
 
 import cats.effect._
 import org.typelevel.log4cats.slf4j.Slf4jLogger
+import secure.logging._
 import secure.logging.SecureLogger._
-import secure.logging.{SecureLogger, _}
 
 object Log4CatsExampleApp extends IOApp{
 
