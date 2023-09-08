@@ -1,11 +1,14 @@
 import Dependencies._
 
 ThisBuild / scalaVersion     := "2.13.11"
-ThisBuild / version          := "0.1.0-SNAPSHOT"
+ThisBuild / version          := "0.0.1-SNAPSHOT"
 ThisBuild / organization     := "secure.logging"
 
+resolvers ++= Resolver.sonatypeOssRepos("releases")
+resolvers ++= Resolver.sonatypeOssRepos("snapshots")
+
 lazy val root = (project in file("."))
-  .aggregate(core)
+  .aggregate(core, derivations, scalaLogging, log4s, log4cats, examples)
 
 lazy val core = (project in file("core"))
   .settings(
@@ -18,6 +21,7 @@ lazy val derivations = (project in file("derivations"))
   .settings(
     name := "secure-logging-4s-derivations",
     libraryDependencies ++= Seq(
+      "com.chuusai" %% "shapeless" % "2.3.10",
       munit % Test
     )
   )

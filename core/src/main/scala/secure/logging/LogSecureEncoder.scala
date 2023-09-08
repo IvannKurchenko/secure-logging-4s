@@ -1,10 +1,12 @@
 package secure.logging
 
 import java.nio.charset.Charset
+import scala.annotation.implicitNotFound
 
 /**
  * Type class that provides a way to encode value of type `A` to [[LogSecured]].
  */
+@implicitNotFound("Cannot resolve log secure encoder of the type ${T}")
 trait LogSecureEncoder[-A] {
 
   /**
@@ -69,7 +71,6 @@ trait LogSecureEncoderLowPriorityImplicits {
 
 trait LogSecureEncoderInstances {
   this: LogSecureEncoderLowPriority =>
-
 
   val DefaultCharset: Charset = Charset.forName("UTF-8")
 
