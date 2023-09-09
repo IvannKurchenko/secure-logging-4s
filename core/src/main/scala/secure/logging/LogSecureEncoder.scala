@@ -9,16 +9,7 @@ import scala.collection.immutable.{Queue, SortedMap, SortedSet}
  * Type class that provides a way to encode value of type `A` to [[LogSecured]].
  */
 @implicitNotFound("Cannot resolve log secure encoder of the type ${T}")
-trait LogSecureEncoder[-A] {
-
-  /**
-   * Encodes value of type `A` to [[LogSecured]].
-   *
-   * @param value to be encoded
-   * @tparam B type of value
-   * @return [[LogSecured]] value
-   */
-  def encode[B <: A](value: B): LogSecured
+trait LogSecureEncoder[A] extends ContravariantLogSecureEncoder[A] {
 
   /**
    * Helper function that allows to create encoder for type `B` based on encoder for type `A`.
@@ -33,6 +24,7 @@ trait LogSecureEncoder[-A] {
 
   /**
    * Helper function that allows to create new encoder for type `A` which will prefix encoded value with `prefix`.
+   *
    * @param prefix prefix to be added to encoded value
    * @return encoder for type `A`
    */
@@ -55,24 +47,44 @@ trait LogSecureEncoder[-A] {
 }
 
 trait LogSecureEncoderLowPriority {
+  /**
+   * Contravariant version of [[LogSecureEncoder]]. Made to lower the priority of implicit encoder resolution
+   * for types that that have more specific encoder defined. For instance, to pick up encoder for `List[A]` instead
+   * of `Seq[A]` when both are defined.
+   *
+   * @tparam A type of value
+   */
+  trait ContravariantLogSecureEncoder[-A] extends Serializable {
+    /**
+     * Encodes value of type `A` to [[LogSecured]].
+     *
+     * @param value to be encoded
+     * @return [[LogSecured]] value
+     */
+    def encode(value: A): LogSecured
+  }
+
   def apply[A](implicit encoder: LogSecureEncoder[A]): LogSecureEncoder[A] = encoder
 
-  def instance[A](f: A => LogSecured): LogSecureEncoder[A] = new LogSecureEncoder[A] {
-    override def encode[B <: A](value: B): LogSecured = f(value.asInstanceOf[A])
-  }
+  def instance[A](f: A => LogSecured): LogSecureEncoder[A] = f(_)
 
   implicit def encode[A](value: A)(implicit encoder: LogSecureEncoder[A]): LogSecured = encoder.encode(value)
 }
 
 
-trait LogSecureEncoderLowPriorityImplicits {
+private[logging] trait LogSecureEncoderLowPriorityImplicits {
   this: LogSecureEncoderLowPriority =>
 
   implicit def byteEncoder: LogSecureEncoder[Byte] = instance[Byte](i => LogSecured(i.toString))
+
   implicit def intEncoder: LogSecureEncoder[Int] = instance[Int](i => LogSecured(i.toString))
+
   implicit def longEncoder: LogSecureEncoder[Long] = instance[Long](i => LogSecured(i.toString))
+
   implicit def floatEncoder: LogSecureEncoder[Float] = instance[Float](i => LogSecured(i.toString))
+
   implicit def doubleEncoder: LogSecureEncoder[Double] = instance[Double](i => LogSecured(i.toString))
+
   implicit def booleanEncoder: LogSecureEncoder[Boolean] = instance[Boolean](i => LogSecured(i.toString))
 
   implicit def seqEncoder[A: LogSecureEncoder]: LogSecureEncoder[Seq[A]] = {
@@ -225,7 +237,7 @@ trait LogSecureEncoderInstances {
    * Generic hash encoder for strings with custom charset and hashing algorithm.
    * See documentation for [[MessageDigest]] for list of supported algorithms.
    *
-   * @param charset charset to be used for encoding string into bytes for hashing
+   * @param charset   charset to be used for encoding string into bytes for hashing
    * @param algorithm hashing algorithm
    * @return encoder for strings that produces hash from the input string
    */

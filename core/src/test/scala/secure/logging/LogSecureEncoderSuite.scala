@@ -109,6 +109,7 @@ class LogSecureEncoderSuite extends munit.FunSuite {
     }
 
     val users: List[User] = List(User("john.doe@acme.com"), User("john.smith@acme.com"))
+    val encoder: LogSecureEncoder[List[User]] = LogSecureEncoder[List[User]]
     assertEquals(sl"users: $users".value, "users: List(john.do**********, john.smit**********)")
   }
 
@@ -160,7 +161,7 @@ class LogSecureEncoderSuite extends munit.FunSuite {
     }
 
     val users = SortedSet(User("john.doe@acme.com"), User("john.smith@acme.com"))
-    assertEquals(sl"users: $users".value, "users: SortedSet(john.do**********, john.sm**********)")
+    assertEquals(sl"users: $users".value, "users: SortedSet(john.do**********, john.smit**********)")
   }
 
   test("implicit encoder for map") {
@@ -189,25 +190,24 @@ class LogSecureEncoderSuite extends munit.FunSuite {
       implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
     }
 
-    val presentUser = Some(User("john.doe@acme.com"))
+    val presentUser: Option[User] = Some(User("john.doe@acme.com"))
     assertEquals(sl"user: $presentUser".value, "user: Some(john.do**********)")
 
-    val absentUser = Option.empty[User]
+    val absentUser: Option[User] = Option.empty
     assertEquals(sl"user: $absentUser".value, "user: None")
   }
 
   test("implicit encoder for either") {
-
-    implicit val stringEncoder: LogSecureEncoder[String] = LogSecureEncoder.maskSuffix(10)
 
     case class User(email: String)
     object User {
       implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
     }
 
-    val users: Right[String, User] = Right(User("john.doe@acme.com"))
-    val logLine = sl"users: $users"
-    val expected = "users: Right(john.do**********)"
-    assertEquals(logLine.value, expected)
+    val right: Either[Int, User] = Right(User("john.doe@acme.com"))
+    assertEquals(sl"users: $right".value, "users: Right(john.do**********)")
+
+    val left: Either[Int, User] = Left(1)
+    assertEquals(sl"users: $left".value, "users: Left(1)")
   }
 }
