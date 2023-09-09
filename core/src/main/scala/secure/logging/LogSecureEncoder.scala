@@ -1,6 +1,7 @@
 package secure.logging
 
 import java.nio.charset.Charset
+import java.security.MessageDigest
 import scala.annotation.implicitNotFound
 
 /**
@@ -27,6 +28,28 @@ trait LogSecureEncoder[-A] {
    */
   def contraMap[B](f: B => A): LogSecureEncoder[B] = LogSecureEncoder.instance { value: B =>
     encode(f(value))
+  }
+
+  /**
+   * Helper function that allows to create new encoder for type `A` which will prefix encoded value with `prefix`.
+   * @param prefix prefix to be added to encoded value
+   * @return encoder for type `A`
+   */
+  def prefix(prefix: String): LogSecureEncoder[A] = LogSecureEncoder.instance { value: A =>
+    LogSecured(prefix + encode(value).value)
+  }
+
+  /**
+   * Helper function that allows to create encoder for type `A` combining it with encoder for type `B`.
+   * Resulting encoder will concatenate encoded strings
+   *
+   * @param other encoder for type `A`
+   * @tparam B type of value
+   * @return combined encoder for type `A`
+   */
+  def |+|[B <: A](other: LogSecureEncoder[B]): LogSecureEncoder[B] = LogSecureEncoder.instance { value: B =>
+    val secured: LogSecured = other.encode(value)
+    this.encode(value) |+| secured
   }
 }
 
@@ -76,6 +99,12 @@ trait LogSecureEncoderInstances {
 
   /**
    * SHA-256 encoder for strings. Uses UTF-8 charset.
+   */
+  val sha256: LogSecureEncoder[String] = sha256(DefaultCharset)
+
+  /**
+   * SHA-256 encoder for strings with custom charset.
+   *
    * For instance:
    * {{{
    * import secure.logging.core._
@@ -84,7 +113,9 @@ trait LogSecureEncoderInstances {
    * case class User(email: String)
    *
    * object User {
-   * implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
+   *    implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder
+   *    .sha256(Charset.forName("UTF-8"))
+   *    .contraMap[User](_.email)
    * }
    *
    * val user = new User("john.doe@acme.com")
@@ -93,34 +124,58 @@ trait LogSecureEncoderInstances {
    *
    * Will produce string:
    * {{{
-   * user:
+   * user: 36d6de708b54f80f4e673d0a09bc1e21c8fb52b267b9afbe812f8000b1ab9590
    * }}}
-   */
-  val sha256: LogSecureEncoder[String] = sha256(DefaultCharset)
-
-  /**
-   * SHA-256 encoder for strings with custom charset.
    *
    * @param charset charset to be used for encoding
-   * @return encoder for strings
+   * @return encoder for strings that produces SHA-256 hash from the input string
    */
   def sha256(charset: Charset): LogSecureEncoder[String] = hash(charset, "SHA-256")
 
   /**
    * SHA-512 encoder for strings. Uses UTF-8 charset.
    */
-  def sha512: LogSecureEncoder[String] = sha512(DefaultCharset)
+  val sha512: LogSecureEncoder[String] = sha512(DefaultCharset)
 
   /**
    * SHA-512 encoder for strings with custom charset.
+   * For instance:
+   * {{{
+   * import secure.logging.core._
+   * import secure.logging.core.LogSecureEncoder._
+   *
+   * case class User(email: String)
+   *
+   * object User {
+   *    implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder
+   *    .sha512(Charset.forName("UTF-8"))
+   *    .contraMap[User](_.email)
+   * }
+   *
+   * val user = new User("john.doe@acme.com")
+   * val logLine = sl"user: $user"
+   * }}}
+   *
+   * Will produce string:
+   * {{{
+   * user: 9282184f164e8aac5f62f57eaf04aee142ed205e9befceed052b757cfe1ba60da288c3fa38f734d7035e57513ade3a9d4b961e7aa790260d0ee3470c8cf1e146
+   * }}}
    *
    * @param charset charset to be used for encoding
-   * @return encoder for strings
+   * @return encoder for strings that produces SHA-512 hash from the input string
    */
   def sha512(charset: Charset): LogSecureEncoder[String] = hash(charset, "SHA-512")
 
+  /**
+   * Generic hash encoder for strings with custom charset and hashing algorithm.
+   * See documentation for [[MessageDigest]] for list of supported algorithms.
+   *
+   * @param charset charset to be used for encoding string into bytes for hashing
+   * @param algorithm hashing algorithm
+   * @return encoder for strings that produces hash from the input string
+   */
   def hash(charset: Charset, algorithm: String): LogSecureEncoder[String] = instance { value: String =>
-    val digest = java.security.MessageDigest.getInstance(algorithm)
+    val digest = MessageDigest.getInstance(algorithm)
     digest.update(value.getBytes(charset))
     LogSecured(digest.digest().map("%02x".format(_)).mkString)
   }
@@ -128,11 +183,14 @@ trait LogSecureEncoderInstances {
   /**
    * Masks string with asterisk character with prefix length of 10.
    */
-  val mask: LogSecureEncoder[String] = maskPrefix(10, '*')
+  val mask: LogSecureEncoder[String] = maskPrefix(10)
 
 
   /**
-   * Masks string with custom replacement character.
+   * Masks string prefix with custom replacement character and prefix length.
+   * In case prefix length is greater then string length, whole string will be masked.
+   * Default masking character is asterisk (*).
+   *
    * For instance:
    * {{{
    *  import secure.logging.core._
@@ -141,7 +199,7 @@ trait LogSecureEncoderInstances {
    *  case class User(email: String)
    *
    *  object User {
-   *    implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.mask.contraMap[User](_.email)
+   *    implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskPrefix(10, '#').contraMap[User](_.email)
    *  }
    *
    *  val user = new User("john.doe@acme.com")
@@ -150,7 +208,7 @@ trait LogSecureEncoderInstances {
    *
    * Will produce string:
    * {{{
-   *  user: *********cme.com
+   *  user: ##########cme.com
    * }}}
    *
    * @param replacement  character to be used for masking
@@ -158,11 +216,16 @@ trait LogSecureEncoderInstances {
    * @return encoder for strings
    * */
   def maskPrefix(prefixLength: Int, replacement: Char = '*'): LogSecureEncoder[String] = instance { value: String =>
-    LogSecured(replacement.toString * prefixLength + value.drop(prefixLength))
+    val maskLength = Math.min(value.length, prefixLength)
+    val suffix = value.drop(prefixLength)
+    LogSecured(replacement.toString * maskLength + suffix)
   }
 
   /**
-   * Masks string with custom replacement character.
+   * Masks string with custom replacement character and suffix length.
+   * In case suffix length is greater then string length, whole string will be masked.
+   * Default masking character is asterisk (*).
+   *
    * For instance:
    * {{{
    *  import secure.logging.core._
@@ -171,7 +234,7 @@ trait LogSecureEncoderInstances {
    *  case class User(email: String)
    *
    *  object User {
-   *    implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
+   *    implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10, '#').contraMap[User](_.email)
    *  }
    *
    *  val user = new User("john.doe@acme.com")
@@ -181,12 +244,14 @@ trait LogSecureEncoderInstances {
    *
    * Will produce string:
    * {{{
-   *  user: john.do*********
+   *  user: john.do##########
    * }}}
    *
    * */
   def maskSuffix(suffixLength: Int, replacement: Char = '*'): LogSecureEncoder[String] = instance { value: String =>
-    LogSecured(value.dropRight(suffixLength) + replacement.toString * suffixLength)
+    val maskLength = Math.min(value.length, suffixLength)
+    val prefix = value.dropRight(suffixLength)
+    LogSecured(prefix + replacement.toString * maskLength)
   }
 }
 

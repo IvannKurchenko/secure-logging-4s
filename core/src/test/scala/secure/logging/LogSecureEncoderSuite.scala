@@ -2,7 +2,7 @@ package secure.logging
 
 import secure.logging._
 
-class CoreSuite extends munit.FunSuite {
+class LogSecureEncoderSuite extends munit.FunSuite {
   test("sha-256 hash interpolation") {
     case class User(email: String)
     object User {
@@ -27,7 +27,19 @@ class CoreSuite extends munit.FunSuite {
     assertEquals(logLine.value, expected)
   }
 
-  test("prefix masking interpolation") {
+  test("prefix masking interpolation - string shorter then mask") {
+    case class User(email: String)
+    object User {
+      implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskPrefix(20).contraMap[User](_.email)
+    }
+
+    val user = User("jd@acme.com")
+    val logLine = sl"user: $user"
+    val expected = "user: ***********"
+    assertEquals(logLine.value, expected)
+  }
+
+  test("prefix masking interpolation - string longer then mask") {
     case class User(email: String)
     object User {
       implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.mask.contraMap[User](_.email)
@@ -39,19 +51,19 @@ class CoreSuite extends munit.FunSuite {
     assertEquals(logLine.value, expected)
   }
 
-  test("prefix masking interpolation - string shorter then mask") {
+  test("suffix masking interpolation - string shorter then mask") {
     case class User(email: String)
     object User {
-      implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskPrefix(20).contraMap[User](_.email)
+      implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(20).contraMap[User](_.email)
     }
 
-    val user = User("jd@acme.com")
+    val user = User("john.doe@acme.com")
     val logLine = sl"user: $user"
-    val expected = "user: ********************"
+    val expected = "user: *****************"
     assertEquals(logLine.value, expected)
   }
 
-  test("suffix masking interpolation") {
+  test("suffix masking interpolation - string longer then mask") {
     case class User(email: String)
     object User {
       implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
@@ -60,6 +72,21 @@ class CoreSuite extends munit.FunSuite {
     val user = User("john.doe@acme.com")
     val logLine = sl"user: $user"
     val expected = "user: john.do**********"
+    assertEquals(logLine.value, expected)
+  }
+
+  test("manually defined encoder should encode fields in different ways") {
+    case class User(email: String, phone: String)
+    object User {
+      implicit val encoder: LogSecureEncoder[User] = {
+        sha256.contraMap[User](_.email).prefix("email: ") |+|
+          mask.contraMap[User](_.phone).prefix(", phone: ")
+      }
+    }
+
+    val user = User("john.doe@acme.com", "+1 123 456 789")
+    val logLine = sl"user: $user"
+    val expected = "user: email: 36d6de708b54f80f4e673d0a09bc1e21c8fb52b267b9afbe812f8000b1ab9590, phone: ********** 789"
     assertEquals(logLine.value, expected)
   }
 }
