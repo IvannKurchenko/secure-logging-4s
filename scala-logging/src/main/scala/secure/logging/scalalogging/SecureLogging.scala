@@ -1,4 +1,4 @@
-package secure.logging
+package secure.logging.scalalogging
 
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory

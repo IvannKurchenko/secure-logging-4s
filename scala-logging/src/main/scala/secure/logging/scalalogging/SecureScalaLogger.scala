@@ -1,7 +1,8 @@
-package secure.logging
+package secure.logging.scalalogging
 
 import com.typesafe.scalalogging.Logger
 import org.slf4j.Marker
+import secure.logging.LogSecureString
 
 /**
  * A secure logger that wraps a Scala logger.

@@ -8,7 +8,7 @@ import scala.collection.immutable.SortedMap
 /**
  * Type class that provides a way to encode value of type `A` to [[LogSecured]].
  */
-@implicitNotFound("Cannot resolve log secure encoder of the type ${T}")
+@implicitNotFound("Cannot resolve log secure encoder of the type `${A}`")
 trait LogSecureEncoder[-A] {
   /**
    * Encodes value of type `A` to [[LogSecured]].
@@ -67,17 +67,17 @@ trait LogSecureEncoderLowPriority {
 private[logging] trait LogSecureEncoderLowPriorityImplicits {
   this: LogSecureEncoderLowPriority =>
 
-  implicit def byteEncoder: LogSecureEncoder[Byte] = instance[Byte](i => LogSecured(i.toString))
+  implicit val byteEncoder: LogSecureEncoder[Byte] = instance[Byte](i => LogSecured(i.toString))
 
-  implicit def intEncoder: LogSecureEncoder[Int] = instance[Int](i => LogSecured(i.toString))
+  implicit val intEncoder: LogSecureEncoder[Int] = instance[Int](i => LogSecured(i.toString))
 
-  implicit def longEncoder: LogSecureEncoder[Long] = instance[Long](i => LogSecured(i.toString))
+  implicit val longEncoder: LogSecureEncoder[Long] = instance[Long](i => LogSecured(i.toString))
 
-  implicit def floatEncoder: LogSecureEncoder[Float] = instance[Float](i => LogSecured(i.toString))
+  implicit val floatEncoder: LogSecureEncoder[Float] = instance[Float](i => LogSecured(i.toString))
 
-  implicit def doubleEncoder: LogSecureEncoder[Double] = instance[Double](i => LogSecured(i.toString))
+  implicit val doubleEncoder: LogSecureEncoder[Double] = instance[Double](i => LogSecured(i.toString))
 
-  implicit def booleanEncoder: LogSecureEncoder[Boolean] = instance[Boolean](i => LogSecured(i.toString))
+  implicit val booleanEncoder: LogSecureEncoder[Boolean] = instance[Boolean](i => LogSecured(i.toString))
 
   implicit def seqEncoder[A: LogSecureEncoder]: LogSecureEncoder[Seq[A]] = {
     iteratorEncoder[A].contraMap(_.iterator)

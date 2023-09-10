@@ -1,6 +1,7 @@
 package secure.logging.examples
 
 import secure.logging._
+import secure.logging.scalalogging.StrictSecureLogging
 
 object StrictSecureLoggingExampleApp extends StrictSecureLogging {
   def main(args: Array[String]): Unit = {

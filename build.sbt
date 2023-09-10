@@ -41,14 +41,21 @@ lazy val scalaLogging = (project in file("scala-logging"))
 lazy val log4s = (project in file("log4s"))
   .settings(
     name := "secure-logging-4s-log4s",
-    libraryDependencies ++= Seq("org.log4s" %% "log4s" % "1.10.0")
+    libraryDependencies ++= Seq(
+      "org.log4s" %% "log4s" % "1.10.0",
+      munit % Test
+    )
   )
   .dependsOn(core)
 
 lazy val log4cats = (project in file("log4cats"))
   .settings(
     name := "secure-logging-4s-log4cats",
-    libraryDependencies ++= Seq("org.typelevel" %% "log4cats-core" % "2.6.0")
+    libraryDependencies ++= Seq(
+      "org.typelevel" %% "log4cats-core" % "2.6.0",
+      "org.typelevel" %% "log4cats-slf4j" % "2.6.0" % Test,
+      munit % Test
+    )
   )
   .dependsOn(core)
 
