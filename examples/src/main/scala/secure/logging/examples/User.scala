@@ -5,7 +5,7 @@ import secure.logging._
 class User(val email: String)
 
 object User {
-  implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.sha256.contraMap[User](_.email)
+    implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.sha256.contraMap[User](_.email)
 
-  val exampleUser = new User("john.doe@acome.com")
+    val exampleUser = new User("john.doe@acome.com")
 }

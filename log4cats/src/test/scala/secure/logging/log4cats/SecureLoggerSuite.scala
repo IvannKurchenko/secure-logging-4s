@@ -1,5 +1,10 @@
 package secure.logging.log4cats
 
+import cats.effect.IO
+import org.typelevel.log4cats.slf4j.Slf4jLogger
+import secure.logging._
+import secure.logging.log4cats.SecureLogger._
+
 class SecureLoggerSuite extends munit.FunSuite {
 
   test("secured logger should not accept regular strings") {

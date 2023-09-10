@@ -6,11 +6,11 @@ import secure.logging._
 import secure.logging.log4cats.SecureLogger
 import secure.logging.log4cats.SecureLogger._
 
-object Log4CatsExampleApp extends IOApp{
+object Log4CatsExampleApp extends IOApp {
 
-  implicit val unsafeLogger: SecureLogger[IO] = Slf4jLogger.getLogger[IO].secure
-  override def run(args: List[String]): IO[ExitCode] = {
-    val user = User.exampleUser
-    SecureLogger[IO].info(sl"user: $user is logged securely") *> IO(ExitCode.Success)
-  }
+    implicit val unsafeLogger: SecureLogger[IO] = Slf4jLogger.getLogger[IO].secure
+    override def run(args: List[String]): IO[ExitCode] = {
+        val user = User.exampleUser
+        SecureLogger[IO].info(sl"user: $user is logged securely") *> IO(ExitCode.Success)
+    }
 }
