@@ -10,7 +10,7 @@ class LogSecureEncoderAutoSuite extends munit.FunSuite {
 
     val user = User("john.doe@acme.com", "1234567890")
     val logLine = LogSecureEncoder[User].encode(user)
-    val expected = LogSecured("(email: 36d6de708b54f80f4e673d0a09bc1e21c8fb52b267b9afbe812f8000b1ab9590, phone: c775e7b757ede630cd0aa1113bd102661ab38829ca52a6422ab782862f268646)")
+    val expected = LogSecured("User$1(email: 36d6de708b54f80f4e673d0a09bc1e21c8fb52b267b9afbe812f8000b1ab9590, phone: c775e7b757ede630cd0aa1113bd102661ab38829ca52a6422ab782862f268646)")
     assertEquals(logLine, expected)
   }
 
