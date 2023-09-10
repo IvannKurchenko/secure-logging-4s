@@ -33,7 +33,7 @@ trait LogSecureEncoderAuto {
         encoder: Lazy[LogSecureEncoder[R]]
     ): LogSecureEncoder[A] = {
         LogSecureEncoder.instance { value =>
-            val name = value.getClass.getSimpleName
+            val name    = value.getClass.getSimpleName
             val r       = generic.to(value)
             val encoded = encoder.value.encode(r)
             LogSecured(s"$name(${encoded.value})")

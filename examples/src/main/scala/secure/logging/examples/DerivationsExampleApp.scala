@@ -7,7 +7,7 @@ object DerivationsExampleApp {
     def main(args: Array[String]): Unit = {
         case class User(val email: String)
         implicit val stringEncoder: LogSecureEncoder[String] = LogSecureEncoder.sha256
-        val exampleUser = new User("john.doe@acome.com")
+        val exampleUser                                      = new User("john.doe@acome.com")
 
         println(sl"user: $exampleUser is logged securely")
     }
