@@ -1,11 +1,26 @@
 import Dependencies._
 
-ThisBuild / scalaVersion     := "2.13.11"
-ThisBuild / version          := "0.1.0-SNAPSHOT"
-ThisBuild / organization     := "secure.logging"
+ThisBuild / scalaVersion := "2.13.11"
+ThisBuild / version := "0.0.1-SNAPSHOT"
+ThisBuild / organization := "secure.logging"
+
+resolvers ++= Resolver.sonatypeOssRepos("releases")
+resolvers ++= Resolver.sonatypeOssRepos("snapshots")
+
+
+inThisBuild(
+  List(
+    scalaVersion := "2.13.11",
+    scalafixScalaBinaryVersion := "2.13",
+    semanticdbEnabled := true,
+    scalacOptions += "-Wunused:imports",
+    semanticdbVersion := scalafixSemanticdb.revision
+  )
+)
 
 lazy val root = (project in file("."))
-  .aggregate(core)
+  .aggregate(core, derivations, scalaLogging, log4s, log4cats, examples)
+
 
 lazy val core = (project in file("core"))
   .settings(
@@ -18,6 +33,7 @@ lazy val derivations = (project in file("derivations"))
   .settings(
     name := "secure-logging-4s-derivations",
     libraryDependencies ++= Seq(
+      "com.chuusai" %% "shapeless" % "2.3.10",
       munit % Test
     )
   )
@@ -37,14 +53,21 @@ lazy val scalaLogging = (project in file("scala-logging"))
 lazy val log4s = (project in file("log4s"))
   .settings(
     name := "secure-logging-4s-log4s",
-    libraryDependencies ++= Seq("org.log4s" %% "log4s" % "1.10.0")
+    libraryDependencies ++= Seq(
+      "org.log4s" %% "log4s" % "1.10.0",
+      munit % Test
+    )
   )
   .dependsOn(core)
 
 lazy val log4cats = (project in file("log4cats"))
   .settings(
     name := "secure-logging-4s-log4cats",
-    libraryDependencies ++= Seq("org.typelevel" %% "log4cats-core" % "2.6.0")
+    libraryDependencies ++= Seq(
+      "org.typelevel" %% "log4cats-core" % "2.6.0",
+      "org.typelevel" %% "log4cats-slf4j" % "2.6.0" % Test,
+      munit % Test
+    )
   )
   .dependsOn(core)
 
@@ -56,4 +79,4 @@ lazy val examples = (project in file("examples"))
       "org.typelevel" %% "log4cats-slf4j" % "2.6.0"
     )
   )
-  .dependsOn(core, scalaLogging, log4s, log4cats)
+  .dependsOn(core, derivations, scalaLogging, log4s, log4cats)

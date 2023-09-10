@@ -1,6 +1,7 @@
-package secure.logging
+package secure.logging.log4cats
 
 import org.typelevel.log4cats.Logger
+import secure.logging.LogSecureString
 
 /** Wrapper around logger that allows to log secure strings ONLY.
   *

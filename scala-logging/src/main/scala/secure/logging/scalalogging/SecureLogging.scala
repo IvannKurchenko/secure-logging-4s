@@ -1,4 +1,4 @@
-package secure.logging
+package secure.logging.scalalogging
 
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
@@ -11,7 +11,7 @@ trait LazySecureLogging {
         SecureScalaLogger(Logger(LoggerFactory.getLogger(getClass.getName)))
 }
 
-/** Similar to [[com.typesafe.scalalogging.StrictLogging]], but for SecureScalaLogger.
+/** Similar to StrictLogging, but for SecureScalaLogger.
   */
 trait StrictSecureLogging {
 
