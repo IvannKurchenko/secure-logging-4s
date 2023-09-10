@@ -3,7 +3,6 @@ package secure.logging
 import java.nio.charset.Charset
 import java.security.MessageDigest
 import scala.annotation.implicitNotFound
-import scala.collection.immutable.SortedMap
 
 /** Type class that provides a way to encode value of type `A` to [[LogSecured]].
   */
@@ -104,7 +103,7 @@ private[logging] trait LogSecureEncoderLowPriorityImplicits {
 
     def iteratorEncoder[A](implicit encoder: LogSecureEncoder[A]): LogSecureEncoder[Iterator[A]] = {
         instance[Iterator[A]] { value =>
-            LogSecured(value.map(encoder.encode).map(_.value).mkString(s"(", ", ", ")"))
+            LogSecured(value.map(encoder.encode).map(_.value).mkString("(", ", ", ")"))
         }
     }
 

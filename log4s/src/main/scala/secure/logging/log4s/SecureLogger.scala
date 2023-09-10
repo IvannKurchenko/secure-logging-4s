@@ -1,8 +1,8 @@
 package secure.logging.log4s
 
 import org.log4s.Logger.LevelLogger
-import secure.logging._
 import org.log4s._
+import secure.logging._
 
 class SecureLevelLogger(val underlying: LevelLogger) extends AnyVal {
     def isEnabled: Boolean = underlying.isEnabled
@@ -28,8 +28,6 @@ class SecureLogger(logger: Logger) {
     @inline def isWarnEnabled: Boolean = logger.isWarnEnabled
 
     @inline def isErrorEnabled: Boolean = logger.isErrorEnabled
-
-    import Logger._
 
     def apply(lvl: LogLevel): SecureLevelLogger = new SecureLevelLogger(logger(lvl))
 

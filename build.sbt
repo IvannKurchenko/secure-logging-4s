@@ -1,14 +1,26 @@
 import Dependencies._
 
-ThisBuild / scalaVersion     := "2.13.11"
-ThisBuild / version          := "0.0.1-SNAPSHOT"
-ThisBuild / organization     := "secure.logging"
+ThisBuild / scalaVersion := "2.13.11"
+ThisBuild / version := "0.0.1-SNAPSHOT"
+ThisBuild / organization := "secure.logging"
 
 resolvers ++= Resolver.sonatypeOssRepos("releases")
 resolvers ++= Resolver.sonatypeOssRepos("snapshots")
 
+
+inThisBuild(
+  List(
+    scalaVersion := "2.13.11",
+    scalafixScalaBinaryVersion := "2.13",
+    semanticdbEnabled := true,
+    scalacOptions += "-Wunused:imports",
+    semanticdbVersion := scalafixSemanticdb.revision
+  )
+)
+
 lazy val root = (project in file("."))
   .aggregate(core, derivations, scalaLogging, log4s, log4cats, examples)
+
 
 lazy val core = (project in file("core"))
   .settings(

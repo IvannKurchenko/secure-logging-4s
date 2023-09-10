@@ -10,7 +10,7 @@ import secure.logging.LogSecureString
   * @tparam F
   *   effect type
   */
-class SecureLogger[F[_]](val underlying: Logger[F]) extends AnyVal {
+class SecureLogger[F[_]](private val underlying: Logger[F]) extends AnyVal {
     def error(message: => LogSecureString): F[Unit] = underlying.error(message.value)
     def warn(message: => LogSecureString): F[Unit]  = underlying.warn(message.value)
     def info(message: => LogSecureString): F[Unit]  = underlying.info(message.value)
@@ -34,7 +34,7 @@ class SecureLogger[F[_]](val underlying: Logger[F]) extends AnyVal {
 object SecureLogger {
     def apply[F[_]](implicit logger: SecureLogger[F]): SecureLogger[F] = logger
 
-    implicit class SecureLoggerOps[F[_]](val logger: Logger[F]) extends AnyVal {
+    implicit class SecureLoggerOps[F[_]](private val logger: Logger[F]) extends AnyVal {
         def secure: SecureLogger[F] = new SecureLogger(logger)
     }
 }

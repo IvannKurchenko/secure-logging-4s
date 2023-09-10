@@ -9,7 +9,7 @@ import secure.logging.LogSecureString
   * @param underlying
   *   the Scala logger to wrap
   */
-class SecureScalaLogger(underlying: Logger) {
+class SecureScalaLogger(private val underlying: Logger) {
     // Error
 
     def error(message: LogSecureString): Unit = underlying.error(message.value)
@@ -102,7 +102,7 @@ class SecureScalaLogger(underlying: Logger) {
 object SecureScalaLogger {
     def apply(underlying: Logger): SecureScalaLogger = new SecureScalaLogger(underlying)
 
-    implicit class SecureScalaLoggerOps(val underlying: Logger) extends AnyVal {
+    implicit class SecureScalaLoggerOps(private val underlying: Logger) extends AnyVal {
         def secure: SecureScalaLogger = new SecureScalaLogger(underlying)
     }
 }
