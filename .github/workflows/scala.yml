@@ -30,7 +30,7 @@ jobs:
     - name: Check formatting
       run: sbt scalafmtCheck
     - name: Check linter
-      run: sbt scalafix --check
+      run: sbt "scalafix --check"
     - name: Run tests
       run: sbt test
     - name: Upload dependency graph

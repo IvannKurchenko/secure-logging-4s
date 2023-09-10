@@ -1,8 +1,9 @@
 package secure.logging.log4cats
 
-import cats.effect.IO
+import cats.effect._
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import secure.logging._
+import secure.logging.log4cats.SecureLogger
 import secure.logging.log4cats.SecureLogger._
 
 class SecureLoggerSuite extends munit.FunSuite {
