@@ -1,11 +1,14 @@
 package secure.logging.examples
 
 import secure.logging._
-import secure.logging.scalalogging.LazySecureLogging
+import secure.logging.auto._
 
-object LazySecureLoggingExampleApp extends LazySecureLogging {
+object LazySecureLoggingExampleApp {
     def main(args: Array[String]): Unit = {
-        val user = User.exampleUser
-        logger.info(sl"user: $user is logged securely")
+        class User(val email: String)
+        implicit val stringEncoder: LogSecureEncoder[String] = LogSecureEncoder.sha256
+        val exampleUser = new User("john.doe@acome.com")
+
+        println(sl"user: $exampleUser is logged securely")
     }
 }

@@ -67,4 +67,4 @@ lazy val examples = (project in file("examples"))
       "org.typelevel" %% "log4cats-slf4j" % "2.6.0"
     )
   )
-  .dependsOn(core, scalaLogging, log4s, log4cats)
+  .dependsOn(core, derivations, scalaLogging, log4s, log4cats)
