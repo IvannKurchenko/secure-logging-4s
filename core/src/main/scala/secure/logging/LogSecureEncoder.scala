@@ -3,13 +3,20 @@ package secure.logging
 import java.nio.charset.Charset
 import java.security.MessageDigest
 import scala.annotation.implicitNotFound
-import scala.collection.immutable.{Queue, SortedMap, SortedSet}
+import scala.collection.immutable.SortedMap
 
 /**
  * Type class that provides a way to encode value of type `A` to [[LogSecured]].
  */
 @implicitNotFound("Cannot resolve log secure encoder of the type ${T}")
-trait LogSecureEncoder[A] extends ContravariantLogSecureEncoder[A] {
+trait LogSecureEncoder[-A] {
+  /**
+   * Encodes value of type `A` to [[LogSecured]].
+   *
+   * @param value to be encoded
+   * @return [[LogSecured]] value
+   */
+  def encode[B <: A](value: B): LogSecured
 
   /**
    * Helper function that allows to create encoder for type `B` based on encoder for type `A`.
@@ -47,26 +54,11 @@ trait LogSecureEncoder[A] extends ContravariantLogSecureEncoder[A] {
 }
 
 trait LogSecureEncoderLowPriority {
-  /**
-   * Contravariant version of [[LogSecureEncoder]]. Made to lower the priority of implicit encoder resolution
-   * for types that that have more specific encoder defined. For instance, to pick up encoder for `List[A]` instead
-   * of `Seq[A]` when both are defined.
-   *
-   * @tparam A type of value
-   */
-  trait ContravariantLogSecureEncoder[-A] extends Serializable {
-    /**
-     * Encodes value of type `A` to [[LogSecured]].
-     *
-     * @param value to be encoded
-     * @return [[LogSecured]] value
-     */
-    def encode(value: A): LogSecured
-  }
-
   def apply[A](implicit encoder: LogSecureEncoder[A]): LogSecureEncoder[A] = encoder
 
-  def instance[A](f: A => LogSecured): LogSecureEncoder[A] = f(_)
+  def instance[A](f: A => LogSecured): LogSecureEncoder[A] = new LogSecureEncoder[A] {
+    override def encode[B <: A](value: B): LogSecured = f(value)
+  }
 
   implicit def encode[A](value: A)(implicit encoder: LogSecureEncoder[A]): LogSecured = encoder.encode(value)
 }
@@ -88,37 +80,20 @@ private[logging] trait LogSecureEncoderLowPriorityImplicits {
   implicit def booleanEncoder: LogSecureEncoder[Boolean] = instance[Boolean](i => LogSecured(i.toString))
 
   implicit def seqEncoder[A: LogSecureEncoder]: LogSecureEncoder[Seq[A]] = {
-    iteratorEncoder[A]("Seq").contraMap(_.iterator)
+    iteratorEncoder[A].contraMap(_.iterator)
   }
 
   implicit def arrayEncoder[A: LogSecureEncoder]: LogSecureEncoder[Array[A]] = {
-    iteratorEncoder[A]("Array").contraMap(_.iterator)
-  }
-
-  implicit def listEncoder[A: LogSecureEncoder]: LogSecureEncoder[List[A]] = {
-    iteratorEncoder[A]("List").contraMap(_.iterator)
-  }
-
-  implicit def vectorEncoder[A: LogSecureEncoder]: LogSecureEncoder[Vector[A]] = {
-    iteratorEncoder[A]("Vector").contraMap(_.iterator)
-  }
-
-  implicit def queueEncoder[A: LogSecureEncoder]: LogSecureEncoder[Queue[A]] = {
-    iteratorEncoder[A]("Queue").contraMap(_.iterator)
+    iteratorEncoder[A].contraMap(_.iterator)
   }
 
   implicit def setEncoder[A: LogSecureEncoder]: LogSecureEncoder[Set[A]] = {
-    iteratorEncoder[A]("Set").contraMap(_.iterator)
+    iteratorEncoder[A].contraMap(_.iterator)
   }
 
-  implicit def sortedSetEncoder[A: LogSecureEncoder]: LogSecureEncoder[SortedSet[A]] = {
-    iteratorEncoder[A]("SortedSet").contraMap(_.iterator)
-  }
-
-  def iteratorEncoder[A](collectionName: String)
-                        (implicit encoder: LogSecureEncoder[A]): LogSecureEncoder[Iterator[A]] = {
+  def iteratorEncoder[A](implicit encoder: LogSecureEncoder[A]): LogSecureEncoder[Iterator[A]] = {
     instance[Iterator[A]] { value =>
-      LogSecured(value.map(encoder.encode).map(_.value).mkString(s"$collectionName(", ", ", ")"))
+      LogSecured(value.map(encoder.encode).map(_.value).mkString(s"(", ", ", ")"))
     }
   }
 
@@ -142,18 +117,7 @@ private[logging] trait LogSecureEncoderLowPriorityImplicits {
           case (key, value) =>
             s"${LogSecureEncoder[K].encode(key).value} -> ${LogSecureEncoder[V].encode(value).value}"
         }
-        .mkString("Map(", ", ", ")")
-      LogSecured(string)
-    }
-  }
-
-  implicit def sortedMapEncoder[K: LogSecureEncoder, V: LogSecureEncoder]: LogSecureEncoder[SortedMap[K, V]] = {
-    instance[SortedMap[K, V]] { value =>
-      val string = value.map {
-          case (key, value) =>
-            s"${LogSecureEncoder[K].encode(key).value} -> ${LogSecureEncoder[V].encode(value).value}"
-        }
-        .mkString("SortedMap(", ", ", ")")
+        .mkString("(", ", ", ")")
       LogSecured(string)
     }
   }

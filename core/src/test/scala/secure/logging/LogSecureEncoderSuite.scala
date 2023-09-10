@@ -7,9 +7,7 @@ import scala.collection.immutable.{Queue, SortedMap, SortedSet}
 class LogSecureEncoderSuite extends munit.FunSuite {
   test("sha-256 hash interpolation") {
     case class User(email: String)
-    object User {
-      implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.sha256.contraMap[User](_.email)
-    }
+    implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.sha256.contraMap[User](_.email)
 
     val user = User("john.doe@acme.com")
     val logLine = sl"user: $user"
@@ -19,9 +17,7 @@ class LogSecureEncoderSuite extends munit.FunSuite {
 
   test("sha-512 hash interpolation") {
     case class User(email: String)
-    object User {
-      implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.sha512.contraMap[User](_.email)
-    }
+    implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.sha512.contraMap[User](_.email)
 
     val user = User("john.doe@acme.com")
     val logLine = sl"user: $user"
@@ -31,9 +27,7 @@ class LogSecureEncoderSuite extends munit.FunSuite {
 
   test("prefix masking interpolation - string shorter then mask") {
     case class User(email: String)
-    object User {
-      implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskPrefix(20).contraMap[User](_.email)
-    }
+    implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskPrefix(20).contraMap[User](_.email)
 
     val user = User("jd@acme.com")
     val logLine = sl"user: $user"
@@ -43,9 +37,7 @@ class LogSecureEncoderSuite extends munit.FunSuite {
 
   test("prefix masking interpolation - string longer then mask") {
     case class User(email: String)
-    object User {
-      implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.mask.contraMap[User](_.email)
-    }
+    implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.mask.contraMap[User](_.email)
 
     val user = User("john.doe@acme.com")
     val logLine = sl"user: $user"
@@ -55,9 +47,7 @@ class LogSecureEncoderSuite extends munit.FunSuite {
 
   test("suffix masking interpolation - string shorter then mask") {
     case class User(email: String)
-    object User {
-      implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(20).contraMap[User](_.email)
-    }
+    implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(20).contraMap[User](_.email)
 
     val user = User("john.doe@acme.com")
     val logLine = sl"user: $user"
@@ -67,9 +57,7 @@ class LogSecureEncoderSuite extends munit.FunSuite {
 
   test("suffix masking interpolation - string longer then mask") {
     case class User(email: String)
-    object User {
-      implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
-    }
+    implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
 
     val user = User("john.doe@acme.com")
     val logLine = sl"user: $user"
@@ -79,11 +67,9 @@ class LogSecureEncoderSuite extends munit.FunSuite {
 
   test("manually defined encoder should encode fields in different ways") {
     case class User(email: String, phone: String)
-    object User {
-      implicit val encoder: LogSecureEncoder[User] = {
-        sha256.contraMap[User](_.email).prefix("email: ") |+|
-          mask.contraMap[User](_.phone).prefix(", phone: ")
-      }
+    implicit val encoder: LogSecureEncoder[User] = {
+      sha256.contraMap[User](_.email).prefix("email: ") |+|
+        mask.contraMap[User](_.phone).prefix(", phone: ")
     }
 
     val user = User("john.doe@acme.com", "+1 123 456 789")
@@ -94,101 +80,80 @@ class LogSecureEncoderSuite extends munit.FunSuite {
 
   test("implicit encoder for array") {
     case class User(email: String)
-    object User {
-      implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
-    }
+    implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
 
     val users = Array(User("john.doe@acme.com"), User("john.smith@acme.com"))
-    assertEquals(sl"users: $users".value, "users: Array(john.do**********, john.smit**********)")
+    assertEquals(sl"users: $users".value, "users: (john.do**********, john.smit**********)")
   }
 
   test("implicit encoder for list") {
     case class User(email: String)
-    object User {
-      implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
-    }
+    implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
 
     val users: List[User] = List(User("john.doe@acme.com"), User("john.smith@acme.com"))
-    val encoder: LogSecureEncoder[List[User]] = LogSecureEncoder[List[User]]
-    assertEquals(sl"users: $users".value, "users: List(john.do**********, john.smit**********)")
+    assertEquals(sl"users: $users".value, "users: (john.do**********, john.smit**********)")
   }
 
   test("implicit encoder for seq") {
     case class User(email: String)
-    object User {
-      implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
-    }
+    implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
 
     val users = Seq(User("john.doe@acme.com"), User("john.smith@acme.com"))
-    assertEquals(sl"users: $users".value, "users: Seq(john.do**********, john.smit**********)")
+    assertEquals(sl"users: $users".value, "users: (john.do**********, john.smit**********)")
   }
 
   test("implicit encoder for vector") {
     case class User(email: String)
-    object User {
-      implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
-    }
+    implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
 
     val users: Vector[User] = Vector(User("john.doe@acme.com"), User("john.smith@acme.com"))
-    assertEquals(sl"users: $users".value, "users: Vector(john.do**********, john.smit**********)")
+    assertEquals(sl"users: $users".value, "users: (john.do**********, john.smit**********)")
   }
 
   test("implicit encoder for queue") {
     case class User(email: String)
-    object User {
-      implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
-    }
+    implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
 
     val users = Queue(User("john.doe@acme.com"), User("john.smith@acme.com"))
-    assertEquals(sl"users: $users".value, "users: Queue(john.do**********, john.smit**********)")
+    assertEquals(sl"users: $users".value, "users: (john.do**********, john.smit**********)")
   }
 
   test("implicit encoder for set") {
     case class User(email: String)
-    object User {
-      implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
-    }
+    implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
 
     val users = Set(User("john.doe@acme.com"), User("john.smith@acme.com"))
-    assertEquals(sl"users: $users".value, "users: Set(john.do**********, john.smit**********)")
+    assertEquals(sl"users: $users".value, "users: (john.do**********, john.smit**********)")
   }
 
   test("implicit encoder for sorted set") {
     case class User(email: String)
-    object User {
-      implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
-      implicit val ordering: Ordering[User] = Ordering.by(_.email)
-    }
+    implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
+    implicit val ordering: Ordering[User] = Ordering.by(_.email)
 
     val users = SortedSet(User("john.doe@acme.com"), User("john.smith@acme.com"))
-    assertEquals(sl"users: $users".value, "users: SortedSet(john.do**********, john.smit**********)")
+    assertEquals(sl"users: $users".value, "users: (john.do**********, john.smit**********)")
   }
 
   test("implicit encoder for map") {
     case class User(email: String)
-    object User {
-      implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
-    }
+    implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
 
     val users: Map[Int, User] = Map(1 -> User("john.doe@acme.com"))
-    assertEquals(sl"users: $users".value, "users: Map(1 -> john.do**********)")
+    assertEquals(sl"users: $users".value, "users: (1 -> john.do**********)")
   }
 
   test("implicit encoder for sorted map") {
     case class User(email: String)
-    object User {
-      implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
-    }
+    implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
 
     val users: Map[Int, User] = SortedMap(1 -> User("john.doe@acme.com"))
-    assertEquals(sl"users: $users".value, "users: Map(1 -> john.do**********)")
+    assertEquals(sl"users: $users".value, "users: (1 -> john.do**********)")
   }
 
   test("implicit encoder for option") {
     case class User(email: String)
-    object User {
-      implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
-    }
+    implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
 
     val presentUser: Option[User] = Some(User("john.doe@acme.com"))
     assertEquals(sl"user: $presentUser".value, "user: Some(john.do**********)")
@@ -200,14 +165,26 @@ class LogSecureEncoderSuite extends munit.FunSuite {
   test("implicit encoder for either") {
 
     case class User(email: String)
-    object User {
-      implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
-    }
+    implicit val encoder: LogSecureEncoder[User] = LogSecureEncoder.maskSuffix(10).contraMap[User](_.email)
 
     val right: Either[Int, User] = Right(User("john.doe@acme.com"))
     assertEquals(sl"users: $right".value, "users: Right(john.do**********)")
 
     val left: Either[Int, User] = Left(1)
     assertEquals(sl"users: $left".value, "users: Left(1)")
+  }
+
+  test("contravariance test") {
+    sealed trait UserData
+    case class UserEmail(email: String) extends UserData
+
+    implicit val encoder: LogSecureEncoder[UserData] = {
+      LogSecureEncoder.maskSuffix(10).contraMap[UserData] {
+        case UserEmail(email) => email
+      }
+    }
+
+    val userData = UserEmail("john.doe@acme.com")
+    assertEquals(sl"user: $userData".value, "user: john.do**********")
   }
 }
