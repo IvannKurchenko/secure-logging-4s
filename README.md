@@ -106,6 +106,15 @@ will produce string like:
 user: john.do**********
 ```
 
+### Plain
+In case if you don't want to hide any data, you can use `plain` extension:
+```scala
+import secure.logging._
+
+val safeText = "some text"
+sl"safe text: ${safeText.plain}"
+```
+
 ### Deriving encoders
 In case you have a case class with sensitive data, you can derive encoder for it:
 ```scala
