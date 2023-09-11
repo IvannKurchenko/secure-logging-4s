@@ -2,11 +2,11 @@ import Dependencies._
 
 ThisBuild / scalaVersion := "2.13.11"
 ThisBuild / version := "0.0.1-SNAPSHOT"
-ThisBuild / organization := "secure.logging"
+ThisBuild / isSnapshot := true
+ThisBuild / versionScheme := Some("semver-spec")
 
 resolvers ++= Resolver.sonatypeOssRepos("releases")
 resolvers ++= Resolver.sonatypeOssRepos("snapshots")
-
 
 inThisBuild(
   List(

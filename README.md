@@ -12,7 +12,28 @@ plain form is not leaked.
 ## Installation
 Add a library to your project:
 ```scala
-TODO
+resolvers ++= Resolver.sonatypeOssRepos("releases")
+resolvers ++= Resolver.sonatypeOssRepos("snapshots")
+
+libraryDependencies ++= Seq(
+  "io.github.ivannkurchenko" %% "secure-logging-4s-core" % "0.0.1-SNAPSHOT",
+  "io.github.ivannkurchenko" %% "secure-logging-4s-derivations" % "0.0.1-SNAPSHOT",
+
+  /*
+   * Wrappers for scalalogging
+   */
+  "io.github.ivannkurchenko" %% "secure-logging-4s-scala-logging" % "0.0.1-SNAPSHOT",
+  
+  /*
+   * Wrappers for log4s
+   */
+  "io.github.ivannkurchenko" %% "secure-logging-4s-log4s" % "0.0.1-SNAPSHOT",
+
+  /*
+   * Wrappers for log4cats
+   */
+  "io.github.ivannkurchenko" %% "secure-logging-4s-log4cats" % "0.0.1-SNAPSHOT",
+)
 ```
 
 ## Core
@@ -83,6 +104,15 @@ sl"user: $user"
 will produce string like:
 ```
 user: john.do**********
+```
+
+### Plain
+In case if you don't want to hide any data, you can use `plain` extension:
+```scala
+import secure.logging._
+
+val safeText = "some text"
+sl"safe text: ${safeText.plain}"
 ```
 
 ### Deriving encoders
